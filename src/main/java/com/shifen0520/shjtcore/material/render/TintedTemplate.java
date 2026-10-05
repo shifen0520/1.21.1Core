@@ -25,22 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * 材质染色模板：把一个材料形态的物品/方块渲染成 1~3 层带染色的模型。
- * 移植自 odysseyindustrial 的 com.gto.oi.data.material.common.render.TintedTemplate，
- * 仅把依赖的 Material / RgbColorData 换成 shjtcore 自身实现，其余 registrylib 调用保持一致。
- *
- * <p><b>26.1.2 → 1.21.1 移植改动</b>：
- * <ul>
- *   <li>{@code net.minecraft.client.data.models.model.*} → {@code net.minecraft.data.models.model.*}
- *       （1.21.1 的 datagen 模型类不在 client 子包下）</li>
- *   <li>{@code ItemTintSource / BlockTintSource} → {@code ItemColor / BlockColor}
- *       （registrylib 8.0.16 的 RegistryLibTintSources 返回的是这两个类型）</li>
- *   <li>物品染色不再写进模型 json：1.21.1 没有 {@code ItemModelUtils.tintedModel}，
- *       改为 {@code ItemBuilder.tintSource(ItemColor...)} 由 registrylib 注册染色</li>
- *   <li>{@code TextureMapping} 直接吃 {@code ResourceLocation}，不再需要 sprite.Material 包装</li>
- * </ul>
- */
 public final class TintedTemplate {
     private TintedTemplate() {
     }
@@ -89,7 +73,6 @@ public final class TintedTemplate {
         return new BlockRender(list);
     }
 
-    /** 贴图路径 → ResourceLocation（1.21.1 的 TextureMapping 直接用 ResourceLocation）。 */
     private static ResourceLocation templateTexture(Layer layer) {
         return rl(layer.texturePath);
     }
@@ -216,7 +199,6 @@ public final class TintedTemplate {
                 generator.generateWithTemplate(item, template, mapping);
             });
 
-            // 2) 染色：1.21.1 走 ItemColor 注册（registrylib 负责），不写进模型 json
             builder.tintSource(tints);
         }
     }
@@ -244,7 +226,6 @@ public final class TintedTemplate {
             BlockColor[] blockTints = TintedTemplate.blockTintSources(this.layers, material);
             ItemColor[] itemTints = TintedTemplate.blockItemTintSources(this.layers, material);
             builder.layeredCube(particle, TintedTemplate.blockModelLayers(this.layers))
-                    // 1.21.1 的 BlockBuilder 这两个方法收 Supplier<Supplier<...>>，需包一层
                     .blockTintSource(() -> () -> blockTints)
                     .tintSource(() -> () -> itemTints);
         }

@@ -27,18 +27,11 @@ public final class Materials {
     }
 
     public static void init() {
-        // 1) 先初始化材料数据类型（颜色/质量/熔点/密度…）
         MaterialDataTypes.init();
-        // 2) 再初始化形态（ingot/dust/plate/gear/fluid…）
         MaterialForms.init();
-        // 3) 最后注册材料本体 —— 空白模板，此处不注册任何材料
         registerMaterials();
     }
 
-    /**
-     * 材料注册点。空白模板保持为空，不注册任何材料。
-     */
     private static void registerMaterials() {
-        // TODO: 在这里注册材料
     }
 }

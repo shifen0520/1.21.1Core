@@ -5,10 +5,6 @@ import com.shifen0520.shjtcore.material.data.MaterialDataUse;
 import com.shifen0520.shjtcore.material.render.MaterialItemRender;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * 物品形态（ingot/dust/plate/gear…）。持有渲染模板，注册时由 Items 应用到 ItemBuilder。
- * 参考 odysseyindustrial 的 com.gto.oi.data.material.common.form.ItemForm。
- */
 public final class ItemForm extends MaterialForm {
     private final MaterialItemRender render;
 
