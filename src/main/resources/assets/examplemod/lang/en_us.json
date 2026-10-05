@@ -1,5 +1,6 @@
 {
-  "itemGroup.examplemod": "Example Mod Tab",
-  "block.examplemod.example_block": "Example Block",
-  "item.examplemod.example_item": "Example Item"
+  "block.mmcr.miniature_electric_furnace_controller": "Miniature Electric Furnace Controller",
+  "item.mmcr.miniature_electric_furnace_controller": "Miniature Electric Furnace Controller",
+  "machine.mmcr.miniature_electric_furnace": "Miniature Electric Furnace",
+  "recipe_pool.mmcr.miniature_electric_furnace": "Electric Furnace"
 }
