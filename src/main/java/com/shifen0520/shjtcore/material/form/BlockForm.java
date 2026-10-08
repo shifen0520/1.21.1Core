@@ -5,6 +5,10 @@ import com.shifen0520.shjtcore.material.data.MaterialDataUse;
 import com.shifen0520.shjtcore.material.render.MaterialBlockRender;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * 方块形态（block/ore…）。持有渲染模板，注册时由 Blocks 应用到 BlockBuilder。
+ * 参考 odysseyindustrial 的 com.gto.oi.data.material.common.form.BlockForm。
+ */
 public final class BlockForm extends MaterialForm {
     private final MaterialBlockRender render;
 

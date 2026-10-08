@@ -4,6 +4,10 @@ import com.shifen0520.shjtcore.material.MaterialForm;
 import com.shifen0520.shjtcore.material.data.MaterialDataUse;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * 流体形态。材料携带该形态时，由 Fluids 注册对应流体。
+ * 参考 odysseyindustrial 的流体形态设计（此处为 twtdlcore 自包含实现）。
+ */
 public final class FluidForm extends MaterialForm {
     private final int density;
     private final int viscosity;

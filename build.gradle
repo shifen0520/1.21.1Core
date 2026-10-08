@@ -93,17 +93,21 @@ configurations {
 
 dependencies {
     implementation 'com.gto:registrylib-neoforge-1.21.1:8.0.16'
+    implementation "com.maple197:MapleUtilLib-neoforge-1.21.1:0.3.0"
     implementation "curse.maven:jei-238222:9009406"
     implementation "curse.maven:jade-324717:8591319"
     implementation "curse.maven:applied-energistics-2-223794:8992605"
     implementation "curse.maven:guideme-1173950:8897145"
     implementation "curse.maven:mekanism-268560:7904058"
-    implementation "com.maple197:MapleUtilLib-neoforge-1.21.1:0.3.0"
-    implementation "curse.maven:modular-machinery-community-refoxed-1654570:9046520"
+    implementation "curse.maven:modular-machinery-community-refoxed-1654570:9077093"
     implementation "curse.maven:kubejs-238086:8843626"
     implementation "curse.maven:rhino-416294:8463898"
     implementation "curse.maven:better-advanced-tooltips-1637623:8576077"
     implementation "curse.maven:architectury-api-419699:8492726"
+    implementation "curse.maven:ftb-quests-forge-289412:8885017"
+    implementation "curse.maven:ftb-library-forge-404465:9008089"
+    implementation "curse.maven:ftb-teams-forge-404468:8724782"
+    implementation "curse.maven:ftb-xmod-compat-889915:8909889"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

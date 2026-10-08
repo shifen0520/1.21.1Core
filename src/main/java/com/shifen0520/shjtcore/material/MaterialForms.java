@@ -7,16 +7,32 @@ import com.shifen0520.shjtcore.material.form.ItemForm;
 import com.shifen0520.shjtcore.material.form.MaterialFormRegistry;
 import com.shifen0520.shjtcore.material.render.TintedTemplate;
 
+/**
+ * 内置标准材料形态（ingot/dust/plate/gear/fluid…）的注册引导类。
+ * 对应 odysseyindustrial 的 com.gto.oi.data.material.BuiltinOIMaterialForms。
+ *
+ * 注意：twtdlcore 最初误用了 {@code MaterialForm.INGOT} 这类并不存在的静态字段，
+ * 标准形态必须在此处通过 MaterialFormRegistry.register(...) 真正注册后才能被 Materials 引用。
+ */
 public final class MaterialForms {
+    /** 金属块（方块形态）：凡有锭的材料都会额外注册一个 <材料>_block 方块。 */
     public static final MaterialForm BLOCK;
     public static final MaterialForm INGOT;
+    /**
+     * 粗矿（原矿物品）：仅单元素金属拥有，例如 iron_raw_ore / gold_raw_ore / tin_raw_ore。
+     * 化合物、合金、非金属元素不带此形态。
+     */
+    public static final MaterialForm RAW_ORE;
     public static final MaterialForm DUST;
     public static final MaterialForm PLATE;
     public static final MaterialForm GEAR;
     public static final MaterialForm FLUID;
+    /** 气态元素形态：低密度、低粘度、常温（300K）。气态材料挂此形态后由 Fluids 注册为流体。 */
     public static final MaterialForm GAS;
+    /** 液态元素形态：接近水的密度/粘度。液态元素（如溴、汞）挂此形态后由 Fluids 注册为流体。 */
     public static final MaterialForm LIQUID;
 
+    // 补全的固体材料形态（参考 GTM 形态划分，复用既有染色贴图）
     public static final MaterialForm NUGGET;
     public static final MaterialForm DUST_SMALL;
     public static final MaterialForm DUST_TINY;
@@ -29,29 +45,50 @@ public final class MaterialForms {
     public static final MaterialForm RING;
     public static final MaterialForm SCREW;
 
+    // ===== 补全形态：命名对齐 GTM，贴图沿用 OI 模板 =====
+    /** 细导线（对应 GTM 的 GENERATE_FINE_WIRE）。注意：是细导线物品，不是线圈方块，也不是线缆方块。 */
     public static final MaterialForm WIRE_FINE;
+    /** 元素气体（纯色流体，区别于化合物的灰度水/岩浆纹理）。 */
     public static final MaterialForm ELEMENT_GAS;
+    /** 熔融态元素液体（纯色流体，温度为真实熔点，如铁水 1811K）。 */
     public static final MaterialForm ELEMENT_LIQUID;
+    /** 常温液态元素（汞、溴）：常温即为液体、非熔化所得，用液体纹理而非熔融岩浆纹理。 */
     public static final MaterialForm ELEMENT_FLUID;
+    /** 弹簧。 */
     public static final MaterialForm SPRING;
+    /** 小弹簧。 */
     public static final MaterialForm SPRING_SMALL;
+    /** 双层板。 */
     public static final MaterialForm PLATE_DOUBLE;
+    /** 热锭（对应 GTM 的 hot ingot）。 */
     public static final MaterialForm INGOT_HOT;
+    /** 纳米蜂群（对应 GTOCore 的 GENERATE_NANITES）：动画贴图，仅高等级材料拥有。 */
     public static final MaterialForm NANITES;
 
     private MaterialForms() {
     }
 
+    /** 显式触发类初始化（静态块里完成注册）。空实现，仅为调用方提供语义清晰的入口。 */
     public static void init() {
     }
 
     static {
         INGOT = MaterialFormRegistry.register("ingot", id -> ItemForm.builder()
                 .suffix("ingot").displayName("Ingot").commonTag("ingots")
+                // 改用热锭那套贴图（ingot_hot / ingot_hot_secondary）
                 .render(TintedTemplate.item(
-                        TintedTemplate.tinted(MaterialDataTypes.PRIMARY_COLOR, "item/material/ingot"),
-                        TintedTemplate.tinted(MaterialDataTypes.SECONDARY_COLOR, "item/material/ingot_secondary"),
+                        TintedTemplate.tinted(MaterialDataTypes.PRIMARY_COLOR, "item/material/ingot_hot"),
+                        TintedTemplate.tinted(MaterialDataTypes.SECONDARY_COLOR, "item/material/ingot_hot_secondary"),
                         TintedTemplate.flat("item/material/ingot_overlay")))
+                .build(id));
+
+        // 粗矿（原矿）：单元素金属专属，仅在 PeriodicTable 里给带 INGOT 的元素附加
+        RAW_ORE = MaterialFormRegistry.register("raw_ore", id -> ItemForm.builder()
+                .suffix("raw_ore").displayName("Raw Ore").commonTag("raw_ores")
+                .render(TintedTemplate.item(
+                        TintedTemplate.tinted(MaterialDataTypes.PRIMARY_COLOR, "item/material/raw_ore"),
+                        TintedTemplate.tinted(MaterialDataTypes.SECONDARY_COLOR, "item/material/raw_ore_secondary"),
+                        TintedTemplate.flat("item/material/raw_ore_overlay")))
                 .build(id));
 
         DUST = MaterialFormRegistry.register("dust", id -> ItemForm.builder()
@@ -205,6 +242,8 @@ public final class MaterialForms {
                 .texture("block/fluid/flat_still", "block/fluid/flat_flow")
                 .build(id));
 
+        // 常温液态元素（汞 234K、溴 266K 熔点都低于室温）：现实中常温即为液体，
+        // 并非熔化所得，所以用"水"的液体纹理，不归入熔融（岩浆纹理 / 熔点温度）。
         ELEMENT_FLUID = MaterialFormRegistry.register("element_fluid", id -> FluidForm.builder()
                 .suffix("fluid").displayName("Liquid").commonTag("liquids")
                 .density(1000).viscosity(1000).temperature(300).tintColor(0xFFFFFFFF)
@@ -244,13 +283,16 @@ public final class MaterialForms {
                         TintedTemplate.flat("item/material/ingot_hot_overlay")))
                 .build(id));
 
+        // ===== 方块形态：金属块（BlockForm，注册出来的真方块，不是物品）=====
         BLOCK = MaterialFormRegistry.register("block", id -> BlockForm.builder()
                 .suffix("block").displayName("Block").commonTag("storage_blocks")
+                // 只用主色单层：此前主/副两层是完全重叠的两个 0~16 立方体，
+                // 副色层会把主色层整个盖住，方块显示出来是"副色×65%"，又暗又偏色
                 .render(TintedTemplate.block(
-                        TintedTemplate.opaque(TintedTemplate.tinted(MaterialDataTypes.PRIMARY_COLOR, "block/material/block")),
-                        TintedTemplate.opaque(TintedTemplate.tinted(MaterialDataTypes.SECONDARY_COLOR, "block/material/block_secondary"))))
+                        TintedTemplate.opaque(TintedTemplate.tinted(MaterialDataTypes.PRIMARY_COLOR, "block/material/block"))))
                 .build(id));
 
+        // ===== 纳米蜂群（GTOCore GENERATE_NANITES）=====
         NANITES = MaterialFormRegistry.register("nanites", id -> ItemForm.builder()
                 .suffix("nanites").displayName("Nanites").commonTag("nanites")
                 .render(TintedTemplate.item(

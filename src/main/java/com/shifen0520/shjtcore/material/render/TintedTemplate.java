@@ -25,6 +25,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 材质染色模板：把一个材料形态的物品/方块渲染成 1~3 层带染色的模型。
+ * 移植自 odysseyindustrial 的 com.gto.oi.data.material.common.render.TintedTemplate，
+ * 仅把依赖的 Material / RgbColorData 换成 shjtcore 自身实现，其余 registrylib 调用保持一致。
+ *
+ * <p><b>26.1.2 → 1.21.1 移植改动</b>：
+ * <ul>
+ *   <li>{@code net.minecraft.client.data.models.model.*} → {@code net.minecraft.data.models.model.*}
+ *       （1.21.1 的 datagen 模型类不在 client 子包下）</li>
+ *   <li>{@code ItemTintSource / BlockTintSource} → {@code ItemColor / BlockColor}
+ *       （registrylib 8.0.16 的 RegistryLibTintSources 返回的是这两个类型）</li>
+ *   <li>物品染色不再写进模型 json：1.21.1 没有 {@code ItemModelUtils.tintedModel}，
+ *       改为 {@code ItemBuilder.tintSource(ItemColor...)} 由 registrylib 注册染色</li>
+ *   <li>{@code TextureMapping} 直接吃 {@code ResourceLocation}，不再需要 sprite.Material 包装</li>
+ * </ul>
+ */
 public final class TintedTemplate {
     private TintedTemplate() {
     }
@@ -73,6 +89,7 @@ public final class TintedTemplate {
         return new BlockRender(list);
     }
 
+    /** 贴图路径 → ResourceLocation（1.21.1 的 TextureMapping 直接用 ResourceLocation）。 */
     private static ResourceLocation templateTexture(Layer layer) {
         return rl(layer.texturePath);
     }
@@ -175,9 +192,14 @@ public final class TintedTemplate {
 
         @Override
         public void apply(ItemBuilder<Item, RegistryCore> builder, Material material) {
-            ItemColor[] tints = TintedTemplate.itemTintSources(this.layers, material);
+            // 只负责生成模型 json；运行时染色交给 ClientTintSetup
+            // （RegisterColorHandlersEvent.Item，按层索引取主色/副色）。
+            //
+            // 这里千万不能调 builder.tintSource(...)：它内部会再注册一张默认单层
+            // 模型，和我们的多层模板模型抢同一个输出位置，重复写入被吞掉后留下的
+            // 就是默认模型（引用不存在的 item/<物品名> 贴图 → 紫黑格）。
 
-            // 1) 生成模型 json：1~3 层，手持类走 handheld 模板
+            // 生成模型 json：1~3 层，手持类走 handheld 模板
             builder.model(() -> (item, generator) -> {
                 ModelTemplate template = switch (this.layers.size()) {
                     case 1 -> this.handheld ? ModelTemplates.FLAT_HANDHELD_ITEM : ModelTemplates.FLAT_ITEM;
@@ -198,8 +220,6 @@ public final class TintedTemplate {
                 };
                 generator.generateWithTemplate(item, template, mapping);
             });
-
-            builder.tintSource(tints);
         }
     }
 
@@ -226,6 +246,7 @@ public final class TintedTemplate {
             BlockColor[] blockTints = TintedTemplate.blockTintSources(this.layers, material);
             ItemColor[] itemTints = TintedTemplate.blockItemTintSources(this.layers, material);
             builder.layeredCube(particle, TintedTemplate.blockModelLayers(this.layers))
+                    // 1.21.1 的 BlockBuilder 这两个方法收 Supplier<Supplier<...>>，需包一层
                     .blockTintSource(() -> () -> blockTints)
                     .tintSource(() -> () -> itemTints);
         }
