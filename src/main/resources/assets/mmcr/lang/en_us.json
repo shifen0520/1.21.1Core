@@ -1,0 +1,10 @@
+{
+  "block.mmcr.miniature_electric_furnace_controller": "Miniature Electric Furnace Controller",
+  "item.mmcr.miniature_electric_furnace_controller": "Miniature Electric Furnace Controller",
+  "machine.mmcr.miniature_electric_furnace": "Miniature Electric Furnace",
+  "recipe_pool.mmcr.miniature_electric_furnace": "Electric Furnace",
+  "block.mmcr.large_bronze_boiler_controller": "Large Bronze Boiler Controller",
+  "item.mmcr.large_bronze_boiler_controller": "Large Bronze Boiler Controller",
+  "machine.mmcr.large_bronze_boiler": "Large Bronze Boiler",
+  "recipe_pool.mmcr.large_bronze_boiler": "List Of Boiler Fuels"
+}

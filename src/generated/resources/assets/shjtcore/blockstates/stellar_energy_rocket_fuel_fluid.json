@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/stellar_energy_rocket_fuel_fluid"
+    }
+  }
+}

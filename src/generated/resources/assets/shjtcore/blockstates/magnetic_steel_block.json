@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/magnetic_steel_block"
+    }
+  }
+}

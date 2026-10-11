@@ -1,0 +1,30 @@
+{
+  "values": [
+    "shjtcore:iron_spring",
+    "shjtcore:europium_spring",
+    "shjtcore:copper_spring",
+    "shjtcore:rtm_alloy_spring",
+    "shjtcore:crystal_matrix_spring",
+    "shjtcore:gold_spring",
+    "shjtcore:naquadah_alloy_spring",
+    "shjtcore:cupronickel_spring",
+    "shjtcore:steel_spring",
+    "shjtcore:niobium_titanium_spring",
+    "shjtcore:taranium_spring",
+    "shjtcore:molybdenum_disilicide_spring",
+    "shjtcore:lead_spring",
+    "shjtcore:kanthal_spring",
+    "shjtcore:tin_spring",
+    "shjtcore:tungsten_spring",
+    "shjtcore:aluminium_spring",
+    "shjtcore:vanadium_gallium_spring",
+    "shjtcore:naquadah_spring",
+    "shjtcore:tungsten_steel_spring",
+    "shjtcore:hsla_steel_spring",
+    "shjtcore:hssg_spring",
+    "shjtcore:cosmic_neutronium_spring",
+    "shjtcore:yttrium_barium_cuprate_spring",
+    "shjtcore:mithril_spring",
+    "shjtcore:nichrome_spring"
+  ]
+}

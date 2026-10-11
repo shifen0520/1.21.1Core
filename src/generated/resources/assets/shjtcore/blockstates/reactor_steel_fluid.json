@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/reactor_steel_fluid"
+    }
+  }
+}

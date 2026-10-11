@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/free_proton_gas_fluid"
+    }
+  }
+}

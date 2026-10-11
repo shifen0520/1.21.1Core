@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/magnetohydrodynamically_constrained_star_matter_block"
+    }
+  }
+}

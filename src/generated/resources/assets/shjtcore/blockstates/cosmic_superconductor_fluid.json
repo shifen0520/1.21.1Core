@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/cosmic_superconductor_fluid"
+    }
+  }
+}

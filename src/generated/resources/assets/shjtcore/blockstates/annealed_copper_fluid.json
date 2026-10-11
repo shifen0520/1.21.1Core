@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/annealed_copper_fluid"
+    }
+  }
+}

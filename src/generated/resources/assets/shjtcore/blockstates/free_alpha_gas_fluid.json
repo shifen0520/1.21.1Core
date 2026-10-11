@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/free_alpha_gas_fluid"
+    }
+  }
+}

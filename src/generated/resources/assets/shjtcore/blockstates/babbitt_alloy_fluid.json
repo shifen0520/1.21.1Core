@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/babbitt_alloy_fluid"
+    }
+  }
+}

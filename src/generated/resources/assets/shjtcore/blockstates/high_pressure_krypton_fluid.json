@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/high_pressure_krypton_fluid"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/dense_hydrazine_fuel_mixture_fluid"
+    }
+  }
+}

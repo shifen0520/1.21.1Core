@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/quantum_chromo_dynamically_confined_matter_fluid"
+    }
+  }
+}

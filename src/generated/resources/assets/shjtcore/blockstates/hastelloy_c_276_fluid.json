@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/hastelloy_c_276_fluid"
+    }
+  }
+}

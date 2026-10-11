@@ -1,0 +1,12 @@
+{
+	default_hide_dependency_lines: false
+	default_quest_shape: ""
+	filename: "20f8ef710ee34f21_20f8ef710ee34f21"
+	group: ""
+	id: "20F8EF710EE34F21"
+	images: [ ]
+	order_index: 0
+	quest_links: [ ]
+	quests: [ ]
+	tags: ["shjtcore_auto_chapter_main"]
+}

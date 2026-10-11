@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/conductive_alloy_fluid"
+    }
+  }
+}

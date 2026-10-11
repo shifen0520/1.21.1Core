@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/dispersion_strengthened_copper_block"
+    }
+  }
+}

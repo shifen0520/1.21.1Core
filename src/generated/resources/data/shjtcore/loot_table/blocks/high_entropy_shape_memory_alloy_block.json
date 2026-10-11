@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shjtcore:high_entropy_shape_memory_alloy_block"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "shjtcore:blocks/high_entropy_shape_memory_alloy_block"
+}

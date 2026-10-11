@@ -1,0 +1,10 @@
+{
+  "display": { "translate": "tech.shjtcore.quantum_theory" },
+  "computing_cost": 50000,
+  "duration_ticks": 72000,
+  "requires": ["shjtcore:basic_computing"],
+  "machines": ["shjtcore:quantum_assembler"],
+  "order": 20,
+  "rate_scale": 1.0,
+  "quest_task_title": "量子理论"
+}

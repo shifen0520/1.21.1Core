@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/ice_crystal_volatiles_fluid"
+    }
+  }
+}

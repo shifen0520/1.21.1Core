@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/metastable_hassium_fluid"
+    }
+  }
+}

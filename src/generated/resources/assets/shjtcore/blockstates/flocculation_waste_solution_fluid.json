@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/flocculation_waste_solution_fluid"
+    }
+  }
+}

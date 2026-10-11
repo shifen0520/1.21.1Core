@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/distilled_water_fluid"
+    }
+  }
+}

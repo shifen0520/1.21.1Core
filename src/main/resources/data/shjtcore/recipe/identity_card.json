@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PIP",
+    " I ",
+    "PIP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "shjtcore:identity_card",
+    "count": 1
+  }
+}

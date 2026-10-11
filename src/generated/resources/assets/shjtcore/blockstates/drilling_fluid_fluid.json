@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/drilling_fluid_fluid"
+    }
+  }
+}

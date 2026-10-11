@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/water_agar_mix_fluid"
+    }
+  }
+}

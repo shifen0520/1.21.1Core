@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/fullerene_polymer_matrix_pulp_fluid"
+    }
+  }
+}

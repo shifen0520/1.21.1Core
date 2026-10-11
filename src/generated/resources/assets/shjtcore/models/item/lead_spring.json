@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "shjtcore:item/material/spring",
+    "layer1": "shjtcore:item/material/spring_secondary",
+    "layer2": "shjtcore:item/material/spring_overlay"
+  }
+}

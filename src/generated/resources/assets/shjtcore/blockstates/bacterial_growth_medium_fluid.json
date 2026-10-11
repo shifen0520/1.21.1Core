@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/bacterial_growth_medium_fluid"
+    }
+  }
+}

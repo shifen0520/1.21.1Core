@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/sodium_potassium_fluid"
+    }
+  }
+}

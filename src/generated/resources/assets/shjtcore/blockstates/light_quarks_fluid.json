@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/light_quarks_fluid"
+    }
+  }
+}

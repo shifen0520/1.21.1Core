@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/pure_silane_fluid"
+    }
+  }
+}

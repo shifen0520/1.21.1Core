@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/enriched_bacterial_sludge_fluid"
+    }
+  }
+}

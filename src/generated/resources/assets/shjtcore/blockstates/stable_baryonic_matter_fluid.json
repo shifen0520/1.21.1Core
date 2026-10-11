@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/stable_baryonic_matter_fluid"
+    }
+  }
+}

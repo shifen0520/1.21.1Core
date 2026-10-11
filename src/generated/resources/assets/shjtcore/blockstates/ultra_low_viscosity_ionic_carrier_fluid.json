@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/ultra_low_viscosity_ionic_carrier_fluid"
+    }
+  }
+}

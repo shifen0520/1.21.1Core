@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/tin_alloy_block"
+    }
+  }
+}

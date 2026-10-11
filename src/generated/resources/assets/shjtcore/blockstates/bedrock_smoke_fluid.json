@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/bedrock_smoke_fluid"
+    }
+  }
+}

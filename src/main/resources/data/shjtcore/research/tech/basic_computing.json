@@ -1,0 +1,10 @@
+{
+  "display": { "translate": "tech.shjtcore.basic_computing" },
+  "computing_cost": 10000,
+  "duration_ticks": 24000,
+  "requires": [],
+  "machines": [],
+  "order": 10,
+  "rate_scale": 1.0,
+  "quest_task_title": "基础算力理论"
+}

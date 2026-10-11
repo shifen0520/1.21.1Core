@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/high_entropy_shape_memory_alloy_fluid"
+    }
+  }
+}

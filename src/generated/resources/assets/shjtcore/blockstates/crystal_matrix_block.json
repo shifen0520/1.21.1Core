@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/crystal_matrix_block"
+    }
+  }
+}

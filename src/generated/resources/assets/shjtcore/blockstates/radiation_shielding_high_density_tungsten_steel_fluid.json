@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/radiation_shielding_high_density_tungsten_steel_fluid"
+    }
+  }
+}

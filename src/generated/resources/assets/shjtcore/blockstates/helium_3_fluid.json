@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/helium_3_fluid"
+    }
+  }
+}

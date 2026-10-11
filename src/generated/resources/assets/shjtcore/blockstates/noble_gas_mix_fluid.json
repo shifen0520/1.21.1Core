@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/noble_gas_mix_fluid"
+    }
+  }
+}

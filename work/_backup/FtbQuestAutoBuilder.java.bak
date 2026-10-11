@@ -1,0 +1,426 @@
+package com.shifen0520.shjtcore.research.ftb;
+
+import com.mojang.logging.LogUtils;
+import com.shifen0520.shjtcore.research.data.TechDefinition;
+import com.shifen0520.shjtcore.research.data.TechRegistry;
+import dev.ftb.mods.ftbquests.quest.BaseQuestFile;
+import dev.ftb.mods.ftbquests.quest.Chapter;
+import dev.ftb.mods.ftbquests.quest.Quest;
+import dev.ftb.mods.ftbquests.quest.task.CustomTask;
+import dev.ftb.mods.ftbquests.quest.task.Task;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <b>自动把科技定义翻译成 FTB 任务书。</b>
+ *
+ * <p>玩家只需要编辑 {@code data/shjtcore/research/tech/*.json}，本类会在服务器启动时
+ * 幂等地建出对应的章节、任务与算力上限，并写回任务书文件。玩家完全不需要碰
+ * FTB 编辑器、不需要知道任务 id、不需要把标题抄进 JSON。
+ *
+ * <h2>为什么能这样做</h2>
+ * FTB Quests 2101.1.x 的对象模型是完全可编程的，字节码层面确认过：
+ * <pre>
+ *   file.create(id, QuestObjectType.CHAPTER, 0, nbt)      → Chapter
+ *   file.create(id, QuestObjectType.QUEST, chapterId, nbt) → Quest
+ *   TaskType.requireCreateTask(id, quest, "custom")        → CustomTask
+ *   obj.onCreated()                → 把对象注册进 id 映射 + 挂到父对象上
+ *   file.writeDataFull(folder, lookup) → 落盘
+ * </pre>
+ *
+ * <h2>幂等策略：用 tag，不用标题</h2>
+ * 每个自动生成的对象都带一个 tag（{@code shjtcore_auto_chapter_main} /
+ * {@code shjtcore_auto_tech_shjtcore_basic_computing}），下次启动按 tag 找回自己上次建的对象。
+ *
+ * <p><b>为什么不能按标题匹配</b>：服务端 {@code getRawTitle()} 读的是 FTB <b>自己的翻译表</b>
+ * （{@code config/ftbquests/quests/lang/*.snbt}），而新对象的翻译要等落盘后才进表。
+ * 在"刚建完、还没存盘"的窗口里它返回空串 → 匹配失败 → <b>每次启动都重复建一套章节</b>。
+ * tag 是纯 snbt 数据，读回来一定准。
+ *
+ * <h2>本地化</h2>
+ * FTB Quests <b>不读</b> {@code assets/.../lang/zh_cn.json}，它只认自己那套
+ * {@code lang/<locale>.snbt}（键名 {@code quest.<ID>.title}）。所以本类在生成时
+ * 直接把中文写进 FTB 的翻译表再落盘，否则任务书里会显示原始翻译键字符串。
+ *
+ * <h2>边界</h2>
+ * <ul>
+ *     <li>标了 {@code quest_task_title} / {@code quest_task} 的科技<b>整条跳过</b>，
+ *         交给 {@link ResearchTaskBinder} 按标题/id 接管。这是留给"想手写华丽任务"的出口。</li>
+ *     <li>只碰带 {@code shjtcore_auto_} 前缀 tag 的对象，玩家自己建的章节一律不动。</li>
+ *     <li>启动时清掉重复的自动章节（早期版本因幂等失效可能已建出多个）。</li>
+ *     <li>写盘失败不抛异常：任务在内存里已经建好，本次游戏照样能研究。</li>
+ * </ul>
+ */
+public final class FtbQuestAutoBuilder {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    /** 自动生成对象的 tag 前缀。只有带这个前缀的对象才会被本类认领或清理。 */
+    public static final String TAG_PREFIX = "shjtcore_auto_";
+
+    /** 章节 tag：{@code shjtcore_auto_chapter_<key>}。 */
+    private static final String CHAPTER_TAG_PREFIX = TAG_PREFIX + "chapter_";
+
+    /** 科技 tag：{@code shjtcore_auto_tech_<namespace>_<path>}。 */
+    private static final String TECH_TAG_PREFIX = TAG_PREFIX + "tech_";
+
+    /** 章节内网格布局参数。FTB 坐标系单位是"格"，默认一个任务占 2x2 格。 */
+    private static final double GRID_X = 3.0;
+    private static final double GRID_Y = 3.0;
+    /** 每行放几个任务，超出就换行。 */
+    private static final int PER_ROW = 6;
+
+    /**
+     * 图标兜底表。没配 {@code icon} 时按科技 id 的哈希挑一个，
+     * 保证同一个科技每次生成拿到的图标一致（否则任务书会在每次启动时抖一下）。
+     */
+    private static final String[] FALLBACK_ICONS = {
+            "minecraft:redstone",
+            "minecraft:observer",
+            "minecraft:comparator",
+            "minecraft:repeater",
+            "minecraft:hopper",
+            "minecraft:clock",
+    };
+
+    private FtbQuestAutoBuilder() {
+    }
+
+    /**
+     * 扫描全部科技，把缺失的章节 / 任务 / Custom 任务建好，并写盘。
+     *
+     * @return 参与生成的科技数量
+     */
+    public static int generate(TechRegistry registry) {
+        BaseQuestFile file = FtbBridge.file();
+        if (file == null) {
+            // 没装 FTB Quests，或任务书还没加载。属于正常情况，不算错误。
+            LOGGER.info("[research] FTB 任务书未就绪，跳过自动生成科研任务书");
+            return 0;
+        }
+
+        // 先按章节分组，保证同一章节的任务在同一次遍历里创建
+        Map<String, List<ResourceLocation>> byChapter = new LinkedHashMap<>();
+        for (ResourceLocation techId : registry.researchOrder()) {
+            TechDefinition def = registry.get(techId);
+            if (def == null || def.isManual()) {
+                // 手动绑定的科技不自动生成，让 ResearchTaskBinder 按标题/id 去接管
+                continue;
+            }
+            byChapter.computeIfAbsent(def.chapterKey(), unused -> new ArrayList<>()).add(techId);
+        }
+
+        int count = 0;
+        Map<ResourceLocation, Quest> questByTech = new HashMap<>();
+
+        for (Map.Entry<String, List<ResourceLocation>> entry : byChapter.entrySet()) {
+            String chapterKey = entry.getKey();
+            Chapter chapter = ensureChapter(file, chapterKey);
+            if (chapter == null) {
+                continue;
+            }
+            int index = 0;
+            for (ResourceLocation techId : entry.getValue()) {
+                TechDefinition def = registry.get(techId);
+                if (def == null) {
+                    continue;
+                }
+                Quest quest = ensureQuest(file, chapter, def, index++);
+                if (quest != null) {
+                    questByTech.put(techId, quest);
+                    count++;
+                }
+            }
+        }
+
+        // 依赖线要等所有任务都建出来才能连：前置可能在别的章节里
+        for (Map.Entry<ResourceLocation, Quest> e : questByTech.entrySet()) {
+            TechDefinition def = registry.get(e.getKey());
+            if (def != null) {
+                linkDependencies(def, e.getValue(), questByTech);
+            }
+        }
+
+        // 落盘顺序有讲究：先写翻译表，再写任务书。
+        // 反过来的话章节/任务 id 还没进翻译表，标题会丢。
+        saveQuietly(file);
+
+        LOGGER.info("[research] 科研任务书就绪：{} 个章节 / {} 个任务（自动生成）", byChapter.size(), count);
+        return count;
+    }
+
+    /**
+     * 取出（或建出）指定 key 的章节。
+     *
+     * <p>用 tag 认领，所以重启、改名、调顺序都能认回来，不会重复建。
+     */
+    private static Chapter ensureChapter(BaseQuestFile file, String chapterKey) {
+        String tag = CHAPTER_TAG_PREFIX + sanitize(chapterKey);
+        try {
+            Chapter existing = FtbBridge.chapterByTag(file, tag);
+            if (existing != null) {
+                return existing;
+            }
+            Chapter chapter = FtbBridge.createChapter(file, FtbBridge.newId(file),
+                    chapterTitle(chapterKey), tag);
+            LOGGER.info("[research] 已生成 FTB 章节：{}（key={}）", chapter.id, chapterKey);
+            return chapter;
+        } catch (Throwable t) {
+            LOGGER.warn("[research] 准备章节 \"{}\" 失败，该章节下的科技不会被自动生成任务", chapterKey, t);
+            return null;
+        }
+    }
+
+    /**
+     * 科技 tag：{@code shjtcore_auto_tech_<namespace>_<path>}。
+     *
+     * <p><b>公开出去是因为绑定也要用同一个键</b>：生成和绑定必须认同一个对象，
+     * 否则会出现"任务建出来了但绑定找不到"的假故障。
+     */
+    public static String techTag(ResourceLocation techId) {
+        return TECH_TAG_PREFIX + sanitize(techId.toString());
+    }
+
+    /**
+     * 取出（或建出）这条科技的任务，并保证它挂着算力上限正确的 CustomTask。
+     *
+     * @param index 该科技在本章节里的序号，用来算网格位置
+     */
+    private static Quest ensureQuest(BaseQuestFile file, Chapter chapter, TechDefinition def, int index) {
+        String tag = techTag(def.id());
+        Quest quest = FtbBridge.questByTag(file, tag);
+        boolean created = false;
+
+        try {
+            if (quest == null) {
+                quest = FtbBridge.createQuest(file, FtbBridge.newId(file), chapter.id, tag);
+                // 标题写中文文本：FTB 找不到对应 locale 的翻译时会把它当字面文本显示，
+                // 而写翻译键会原样显示成 "tech.shjtcore.xxx"。详见 chapterTitle 的注释。
+                quest.setRawTitle(def.display().getString());
+                CustomTask task = FtbBridge.createCustomTask(FtbBridge.newId(file), quest, tag);
+                task.setRawTitle("算力");
+                // setRawTitle 只清 cachedTitle，不清 cachedIcon / 任务侧的标题缓存
+                task.invalidate();
+                quest.addTask(task);
+                // addTask 之后必须让父任务再注册一次新任务的 onCreated
+                task.onCreated();
+                quest.invalidate();
+                created = true;
+            }
+
+            // 以下属性每次都刷一遍：JSON 改了成本/描述/图标之后不用手动同步
+            CustomTask task = firstCustomTask(quest);
+            quest.setRawDescription(def.descriptionLines());
+            applyIcon(quest, def);
+            layout(quest, index);
+            if (task != null) {
+                FtbBridge.configure(task, def.computingCost());
+            }
+            quest.clearCachedData();
+        } catch (Throwable t) {
+            LOGGER.warn("[research] 自动生成科技 {} 的 FTB 任务失败，已跳过（该科技暂时不可研究）", def.id(), t);
+            return null;
+        }
+
+        if (created) {
+            LOGGER.info("[research] 已生成 FTB 任务：{}（章节 {}）", def.display().getString(), def.chapterKey());
+        }
+        return quest;
+    }
+
+    /**
+     * 把任务挂到前置科技的任务上。
+     *
+     * <p>前置不在本次生成范围内（被手动绑定、或建失败了）就跳过——不能因为一条前置
+     * 缺失就把整条科技的线全断掉。
+     */
+    private static void linkDependencies(TechDefinition def,
+                                         Quest quest,
+                                         Map<ResourceLocation, Quest> questByTech) {
+        for (ResourceLocation req : def.requires()) {
+            Quest parent = questByTech.get(req);
+            if (parent == null || parent == quest) {
+                continue;
+            }
+            boolean exists = quest.streamDependencies().anyMatch(d -> d == parent);
+            if (!exists) {
+                quest.addDependency(parent);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ 本地化
+
+    /**
+     * 章节的"原始标题"就是中文文本本身，<b>不用翻译键</b>。
+     *
+     * <p>原因：FTB 的 {@code setRawTitle} 并不会把值写进 snbt 的 {@code title} 字段，
+     * 而是走 {@code TranslationManager.addTranslation} 写进 {@code lang/<locale>.snbt}，
+     * 键名是 {@code chapter.<ID>.title}。而 {@code locale} 取自
+     * {@code BaseQuestFile.getLocale()}（服务端读任务书配置，实测是 {@code en_us}）。
+     * 于是：
+     * <ul>
+     *     <li>写翻译键 → 没人翻译 → 界面直接显示 {@code shjtcore.research.chapter.main}
+     *         这种原始键字符串；</li>
+     *     <li>写中文 → FTB 找不到对应 locale 的翻译时会<b>把原始值当字面文本显示</b>，
+     *         正好是我们想要的。</li>
+     * </ul>
+     * 幂等已经由 tag 保证，不依赖标题，所以这里用中文文本零副作用。
+     */
+    private static String chapterTitle(String chapterKey) {
+        return chapterDisplayName(chapterKey);
+    }
+
+    /** 章节 key → 中文名。 */
+    private static String chapterDisplayName(String chapterKey) {
+        return switch (chapterKey) {
+            case TechDefinition.DEFAULT_CHAPTER -> "科研";
+            default -> chapterKey;
+        };
+    }
+
+    // ------------------------------------------------------------------ 外观
+
+    /** 给任务设图标物品；没配就按 id 哈希挑一个稳定的替代品。 */
+    private static void applyIcon(Quest quest, TechDefinition def) {
+        String iconId = def.iconId();
+        if (iconId == null) {
+            iconId = FALLBACK_ICONS[Math.floorMod(def.id().hashCode(), FALLBACK_ICONS.length)];
+        }
+        ResourceLocation parsed;
+        try {
+            parsed = ResourceLocation.parse(iconId);
+        } catch (Exception e) {
+            LOGGER.warn("[research] 科技 {} 的 icon \"{}\" 不是合法 id，已用默认图标", def.id(), iconId);
+            parsed = ResourceLocation.parse(FALLBACK_ICONS[0]);
+        }
+        // DefaultedRegistry 对缺失的 key 返回 missingno 占位而不是 null，所以要先问 containsKey
+        if (!BuiltInRegistries.ITEM.containsKey(parsed)) {
+            LOGGER.warn("[research] 科技 {} 的图标物品 {} 不存在，已保留原图标", def.id(), parsed);
+            return;
+        }
+        quest.setRawIcon(new ItemStack(BuiltInRegistries.ITEM.get(parsed)));
+        // 图标有 cachedIcon 缓存，不清的话界面上还显示旧的
+        quest.invalidate();
+    }
+
+    /** 章节内网格排布。玩家之后可以在编辑器里自由拖动。 */
+    private static void layout(Quest quest, int index) {
+        quest.setPosition((index % PER_ROW) * GRID_X, (index / PER_ROW) * GRID_Y);
+    }
+
+    /** 取出任务上的第一个 CustomTask。 */
+    private static CustomTask firstCustomTask(Quest quest) {
+        for (var t : quest.getTasks()) {
+            if (t instanceof CustomTask custom) {
+                return custom;
+            }
+        }
+        return null;
+    }
+
+    /** 把 tag 里的非法字符换掉。 */
+    private static String sanitize(String raw) {
+        StringBuilder sb = new StringBuilder(raw.length());
+        for (char c : raw.toCharArray()) {
+            sb.append(Character.isLetterOrDigit(c) || c == '_' ? c : '_');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 落盘，失败只记日志。
+     *
+     * <p>{@code writeDataFull} 内部会连带把翻译表一起写进 {@code lang/<locale>.snbt}，
+     * 所以这里只需调它一个。
+     *
+     * <p><b>为什么要先比指纹</b>：{@code writeDataFull} 是无条件全量重写的，
+     * 哪怕内容一个字节都没变，mtime 也会变。而 {@link FtbQuestAutoBinder} 正是靠 mtime
+     * 判断"玩家改了任务书"，于是每 2 秒就会看到一次假变化 → 重绑 → 又写盘，
+     * 形成死循环。就算有守卫不重绑，日志也会被"任务书已写回磁盘"刷屏。
+     * 所以这里先算一遍全任务书的指纹（id / tag / 标题 / 描述 / 图标 / 算力上限），
+     * 和上次落盘时的一致就直接跳过写盘。
+     */
+    private static void saveQuietly(BaseQuestFile file) {
+        String fingerprint = fingerprint(file);
+        if (fingerprint.equals(lastFingerprint)) {
+            LOGGER.debug("[research] 任务书内容无变化，跳过写盘");
+            return;
+        }
+        try {
+            FtbBridge.save(file);
+            lastFingerprint = fingerprint;
+            LOGGER.info("[research] 任务书已写回磁盘：{}", file.getFolder());
+        } catch (Throwable t) {
+            LOGGER.warn("[research] 任务书写盘失败（本次游戏内仍可正常研究，重启后会重新生成）", t);
+        }
+    }
+
+    /**
+     * 上一次成功落盘时的任务书指纹。
+     *
+     * <p>不持久化：只用于同一次游戏内抑制无意义的重复写盘。
+     * 重启后首次 generate 一定会写一次盘（此时指纹为空），符合预期。
+     */
+    private static String lastFingerprint = "";
+
+    /**
+     * 算出整个任务书的内容指纹。
+     *
+     * <p>只取"我们能改动、且改动会影响玩家"的字段，够用即可：
+     * 章节 id + tag + 标题，任务 id + tag + 标题 + 描述 + 图标，
+     * 以及它下面 custom 任务的 id + 算力上限。玩家在 FTB 编辑器里改别的东西
+     * （比如 AE2 示例章节的勾选框）不会被算进来，那种情况 mtime 变化由
+     * {@link FtbQuestAutoBinder} 的重绑路径兜底，不依赖这里的指纹。
+     */
+    private static String fingerprint(BaseQuestFile file) {
+        StringBuilder sb = new StringBuilder();
+        for (Chapter chapter : file.getAllChapters()) {
+            sb.append("C|").append(chapter.id).append('|');
+            var chapterTags = chapter.getTags();
+            if (chapterTags != null) {
+                for (String tag : chapterTags) {
+                    sb.append(tag).append(',');
+                }
+            }
+            sb.append('|').append(FtbBridge.rawTitle(chapter)).append('\n');
+
+            for (Quest quest : chapter.getQuests()) {
+                sb.append("Q|").append(quest.id).append('|');
+                var questTags = quest.getTags();
+                if (questTags != null) {
+                    for (String tag : questTags) {
+                        sb.append(tag).append(',');
+                    }
+                }
+                sb.append('|').append(quest.getAltTitle()).append('|')
+                        .append(quest.getDescription()).append('|')
+                        .append(quest.getIcon()).append('\n');
+
+                for (Task task : quest.getTasks()) {
+                    sb.append("T|").append(task.id).append('|');
+                    var taskTags = task.getTags();
+                    if (taskTags != null) {
+                        for (String tag : taskTags) {
+                            sb.append(tag).append(',');
+                        }
+                    }
+                    if (task instanceof CustomTask custom) {
+                        sb.append(FtbBridge.rawTitle(custom)).append('|')
+                                .append(custom.getMaxProgress());
+                    }
+                    sb.append('\n');
+                }
+            }
+        }
+        return sb.toString();
+    }
+}

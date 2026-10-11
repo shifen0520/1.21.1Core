@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shjtcore:cfc_sic1500_carbon_fiber_reinforced_composite_block"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "shjtcore:blocks/cfc_sic1500_carbon_fiber_reinforced_composite_block"
+}

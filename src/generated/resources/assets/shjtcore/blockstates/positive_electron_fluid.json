@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/positive_electron_fluid"
+    }
+  }
+}

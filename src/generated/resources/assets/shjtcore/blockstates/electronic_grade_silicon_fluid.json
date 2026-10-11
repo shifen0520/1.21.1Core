@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/electronic_grade_silicon_fluid"
+    }
+  }
+}

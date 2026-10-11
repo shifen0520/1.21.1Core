@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/dopamine_fluid"
+    }
+  }
+}

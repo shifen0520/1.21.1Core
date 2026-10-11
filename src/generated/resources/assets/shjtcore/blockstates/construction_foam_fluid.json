@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/construction_foam_fluid"
+    }
+  }
+}

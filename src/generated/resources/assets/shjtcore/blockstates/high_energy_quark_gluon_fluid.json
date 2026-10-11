@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/high_energy_quark_gluon_fluid"
+    }
+  }
+}

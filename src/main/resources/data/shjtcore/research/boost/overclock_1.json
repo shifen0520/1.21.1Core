@@ -1,0 +1,8 @@
+{
+  "display": { "translate": "boost.shjtcore.overclock_1" },
+  "quest_task": -1,
+  "rate": 50.0,
+  "duration_ticks": 72000,
+  "stackable": false,
+  "max_stacks": 1
+}

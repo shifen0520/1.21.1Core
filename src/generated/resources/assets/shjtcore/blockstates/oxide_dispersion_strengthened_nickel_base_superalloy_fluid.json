@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/oxide_dispersion_strengthened_nickel_base_superalloy_fluid"
+    }
+  }
+}

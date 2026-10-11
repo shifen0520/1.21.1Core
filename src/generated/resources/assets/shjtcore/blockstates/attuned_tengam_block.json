@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/attuned_tengam_block"
+    }
+  }
+}

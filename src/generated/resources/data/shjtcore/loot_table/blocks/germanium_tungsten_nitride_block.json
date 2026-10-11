@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shjtcore:germanium_tungsten_nitride_block"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "shjtcore:blocks/germanium_tungsten_nitride_block"
+}

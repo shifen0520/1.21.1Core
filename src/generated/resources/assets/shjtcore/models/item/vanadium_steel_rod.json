@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "shjtcore:item/material/rod",
+    "layer1": "shjtcore:item/material/rod_secondary"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "shjtcore:block/degenerate_rhenium_fluid"
+    }
+  }
+}

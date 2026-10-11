@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "shjtcore:item/material/dust_small",
+    "layer1": "shjtcore:item/material/dust_small_secondary"
+  }
+}

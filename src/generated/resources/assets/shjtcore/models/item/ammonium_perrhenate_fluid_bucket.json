@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "registrylib:item/bucket_fluid",
+    "layer1": "registrylib:item/bucket_base"
+  }
+}
