@@ -99,7 +99,7 @@ dependencies {
     implementation "curse.maven:applied-energistics-2-223794:8992605"
     implementation "curse.maven:guideme-1173950:8897145"
     implementation "curse.maven:mekanism-268560:7904058"
-    implementation "curse.maven:modular-machinery-community-refoxed-1654570:9077093"
+    implementation "curse.maven:modular-machinery-community-refoxed-1654570:9105197"
     implementation "curse.maven:kubejs-238086:8843626"
     implementation "curse.maven:rhino-416294:8463898"
     implementation "curse.maven:better-advanced-tooltips-1637623:8576077"
@@ -108,6 +108,7 @@ dependencies {
     implementation "curse.maven:ftb-library-forge-404465:9008089"
     implementation "curse.maven:ftb-teams-forge-404468:8724782"
     implementation "curse.maven:ftb-xmod-compat-889915:8909889"
+    implementation "curse.maven:modern-ui-352491:8206075"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

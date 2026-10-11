@@ -5,7 +5,6 @@ import cn.howxu.mmcr.publicapi.behavior.TickContext;
 import cn.howxu.mmcr.publicapi.data.DataKey;
 import cn.howxu.mmcr.publicapi.data.DataStore;
 import cn.howxu.mmcr.publicapi.event.RegisterMachineDefinitionsEvent;
-import cn.howxu.mmcr.publicapi.event.RegisterMachineRecipesEvent;
 import cn.howxu.mmcr.publicapi.machine.MachineSpec;
 import cn.howxu.mmcr.publicapi.presentation.TextScope;
 import cn.howxu.mmcr.publicapi.recipe.IoValues;
